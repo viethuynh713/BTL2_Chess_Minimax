@@ -16,7 +16,7 @@ public class Board
         }
     }
 
-    private Tile[,] _board = new Tile[8, 8];
+    public Tile[,] _board = new Tile[8, 8];
 
     public void SetupBoard()
     {

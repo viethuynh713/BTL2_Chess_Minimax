@@ -24,7 +24,7 @@ public class Piece : MonoBehaviour
     private Vector3 moveTo;
     private GameManager manager;
 
-    private MoveFactory factory = new MoveFactory(Board.Instance);
+    public MoveFactory factory = new MoveFactory(Board.Instance);
     private List<Move> moves = new List<Move>();
 
     private bool _hasMoved = false;
@@ -33,6 +33,7 @@ public class Piece : MonoBehaviour
         get { return _hasMoved; }
         set { _hasMoved = value; }
     }
+    
 
     void OnMouseOver()
 
@@ -48,6 +49,7 @@ public class Piece : MonoBehaviour
             }
 
             moves = factory.GetMoves(this, position);
+            
             foreach (Move move in moves)
             {
                 if (move.pieceKilled == null)
@@ -64,7 +66,8 @@ public class Piece : MonoBehaviour
                 }
             }
             GameObject i = Instantiate(prefabs[2]) as GameObject;
-            i.transform.position = this.transform.position;
+            i.transform.position = new Vector3(transform.position.x,0.01f,transform.position.z);
+            
         }
     }
 

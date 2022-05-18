@@ -1,39 +1,114 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("UI settings")]
+    public Text WhoWinText;
+    public GameObject GameOverPanel;
+    public Text blackLevelText;
+    public Text whiteLevelText;
+    public Slider whileSlider;
+    public Slider blackSlider;
+
     AlphaBeta ab = new AlphaBeta();
     private bool _kingDead = false;
     float timer = 0;
     Board _board;
-	void Start ()
+    bool isWhiteTurn = true;
+    int maxDepthWhite = 100;
+    int maxDepthBlack = 1;
+    void Start()
     {
         _board = Board.Instance;
         _board.SetupBoard();
-	}
+        blackSlider.value = 1;
+        whileSlider.value = 1;
+        GameOverPanel.SetActive(false);
 
-	void Update ()
+    }
+    public void ClickPlay(){
+        isPlay = true;
+    }
+    void Update()
     {
-        if (_kingDead)
+        if (!isPlay)
         {
-            Debug.Log("WINNER!");
-            //UnityEditor.EditorApplication.isPlaying = false;
-            Application.Quit();
+            if (blackSlider.value == 0)
+            {
+                maxDepthBlack = 100;
+                blackLevelText.text = "0";
+            }
+            else
+            {
+                maxDepthBlack = (int)blackSlider.value;
+                blackLevelText.text = maxDepthBlack.ToString();
+            }
+            if (whileSlider.value == 0)
+            {
+                maxDepthWhite = 100;
+                whiteLevelText.text = "0";
+            }
+            else
+            {
+                maxDepthWhite = (int)whileSlider.value;
+                whiteLevelText.text = maxDepthWhite.ToString();
+            }
         }
-        if (!playerTurn && timer < 0.5f)
+        else
         {
-            timer += Time.deltaTime;
+
+            if (isWhiteTurn)
+            {
+                if (_kingDead)
+                {
+                    Debug.Log("WINNER!");
+                    WhoWinText.text = "Black Win!";
+                    GameOverPanel.SetActive(true);
+                    isPlay = false;
+                }
+
+                if (timer < 0.5f)
+                {
+                    timer += Time.deltaTime;
+                }
+                else if (timer >= 0.5f)
+                {
+                    Move move = ab.GetMove(maxDepthWhite, isWhiteTurn);
+                    _DoAIMove(move);
+                    isWhiteTurn = !isWhiteTurn;
+                    timer = 0;
+                }
+            }
+            else
+            {
+                if (_kingDead)
+                {
+                    Debug.Log("WINNER!");
+                    WhoWinText.text = "White Win!";
+                    GameOverPanel.SetActive(true);
+                    isPlay = false;
+                }
+
+                if (timer < 0.5f)
+                {
+                    timer += Time.deltaTime;
+                }
+                else if (timer >= 0.5f)
+                {
+                    Move move = ab.GetMove(maxDepthBlack, isWhiteTurn);
+                    _DoAIMove(move);
+                    isWhiteTurn = !isWhiteTurn;
+                    timer = 0;
+                }
+            }
         }
-        else if (!playerTurn && timer >= 0.5f)
-        {
-            Move move = ab.GetMove();
-            _DoAIMove(move);
-            timer = 0;
-        }
-	}
+
+    }
 
     public bool playerTurn = true;
+    public bool isPlay = false;
 
     void _DoAIMove(Move move)
     {
@@ -70,7 +145,7 @@ public class GameManager : MonoBehaviour
                 _kingDead = true;
             Destroy(secondTile.CurrentPiece.gameObject);
         }
-            
+
 
         secondTile.CurrentPiece = move.pieceMoved;
         firstTile.CurrentPiece = null;

@@ -4,8 +4,7 @@ using System.Collections.Generic;
 
 public class AlphaBeta
 {
-    int maxDepth = 4;
-
+    int maxDepth;
     List<Move> _moves = new List<Move>();
     List<Tile> _tilesWithPieces = new List<Tile>();
     List<Tile> _blackPieces = new List<Tile>();
@@ -17,12 +16,19 @@ public class AlphaBeta
     int _blackScore = 0;
     Move bestMove;
 
+    bool isWhiteTurn;
+
     Board _board;
 
-    public Move GetMove()
-    {
+    int randomMode = 100;
+
+    public Move GetMove(int d, bool isWT)
+    {   
+        maxDepth = d;
+        isWhiteTurn = isWT;
         _board = Board.Instance;
-        bestMove = _CreateMove(_board.GetTileFromBoard(new Vector2(0, 0)), _board.GetTileFromBoard(new Vector2(0, 0)));
+        bestMove = _CreateMove(_board.GetTileFromBoard(new Vector2(Random.Range(0, 7), Random.Range(0, 7)))
+            , _board.GetTileFromBoard(new Vector2(Random.Range(0, 7), Random.Range(0, 7))));
         AB(maxDepth, -100000000, 1000000000, true);
         return bestMove;
     }
@@ -37,56 +43,94 @@ public class AlphaBeta
         }
         if (max)
         {
-            int score = -10000000;
-            List<Move> allMoves = _GetMoves(Piece.playerColor.BLACK);
-            foreach (Move move in allMoves)
-            {
-                moveStack.Push(move);
-
-                _DoFakeMove(move.firstPosition, move.secondPosition);
-
-                score = AB(depth - 1, alpha, beta, false);
-
-                _UndoFakeMove();
-
-                if (score > alpha)
-                {
-                    move.score = score;
-                    if (move.score > bestMove.score && depth == maxDepth)
-                    {
-                        bestMove = move;
-                    }
-                    alpha = score;
+            if (maxDepth == randomMode) {
+                List<Move> allMoves;
+                if (isWhiteTurn) {
+                    allMoves = _GetMoves(Piece.playerColor.WHITE);
                 }
-                if (score >= beta)
+                else {
+                    allMoves = _GetMoves(Piece.playerColor.BLACK);
+                }
+                int r = Random.Range(0, allMoves.Count);
+                bestMove = allMoves[r];
+            }
+            else {
+                int score = -10000000;
+                List<Move> allMoves;
+                if (isWhiteTurn) {
+                    allMoves = _GetMoves(Piece.playerColor.WHITE);
+                }
+                else {
+                    allMoves = _GetMoves(Piece.playerColor.BLACK);
+                }
+                foreach (Move move in allMoves)
                 {
-                    break;
+                    moveStack.Push(move);
+
+                    _DoFakeMove(move.firstPosition, move.secondPosition);
+
+                    score = AB(depth - 1, alpha, beta, false);
+
+                    _UndoFakeMove();
+
+                    if (score > alpha)
+                    {
+                        move.score = score;
+                        if (move.score > bestMove.score && depth == maxDepth)
+                        {
+                            bestMove = move;
+                        }
+                        alpha = score;
+                    }
+                    if (score >= beta)
+                    {
+                        break;
+                    }
                 }
             }
             return alpha;
         }
         else
         {
-            int score = 10000000;
-            List<Move> allMoves = _GetMoves(Piece.playerColor.WHITE);
-            foreach (Move move in allMoves)
-            {
-                moveStack.Push(move);
-
-                _DoFakeMove(move.firstPosition, move.secondPosition);
-
-                score = AB(depth - 1, alpha, beta, true);
-
-                _UndoFakeMove();
-
-                if (score < beta)
-                {
-                    move.score = score;
-                    beta = score;
+            if (maxDepth == randomMode) {
+                List<Move> allMoves;
+                if (isWhiteTurn) {
+                    allMoves = _GetMoves(Piece.playerColor.WHITE);
                 }
-                if (score <= alpha)
+                else {
+                    allMoves = _GetMoves(Piece.playerColor.BLACK);
+                }
+                int r = Random.Range(0, allMoves.Count);
+                bestMove = allMoves[r];
+            }
+            else {
+                int score = 10000000;
+                List<Move> allMoves;
+                if (isWhiteTurn) {
+                    allMoves = _GetMoves(Piece.playerColor.WHITE);
+                }
+                else {
+                    allMoves = _GetMoves(Piece.playerColor.BLACK);
+                }
+                foreach (Move move in allMoves)
                 {
-                    break;
+                    moveStack.Push(move);
+
+                    _DoFakeMove(move.firstPosition, move.secondPosition);
+
+                    score = AB(depth - 1, alpha, beta, true);
+
+                    _UndoFakeMove();
+
+                    if (score < beta)
+                    {
+                        move.score = score;
+                        beta = score;
+                    }
+                    if (score <= alpha)
+                    {
+                        break;
+                    }
                 }
             }
             return beta;
